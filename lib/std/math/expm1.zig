@@ -23,9 +23,12 @@ pub fn expm1(x: anytype) @TypeOf(x) {
     return switch (T) {
         f32 => expm1_32(x),
         f64 => expm1_64(x),
+        f128 => __expm1_f128(x),
         else => @compileError("exp1m not implemented for " ++ @typeName(T)),
     };
 }
+
+extern fn __expm1_f128(f128) callconv(.c) f128;
 
 fn expm1_32(x_: f32) f32 {
     if (math.isNan(x_))
@@ -309,6 +312,16 @@ test expm1_64 {
     try expect(math.approxEqAbs(f64, expm1_64(0.2), 0.221403, epsilon));
     try expect(math.approxEqAbs(f64, expm1_64(0.8923), 1.440737, epsilon));
     try expect(math.approxEqAbs(f64, expm1_64(1.5), 3.481689, epsilon));
+}
+
+test __expm1_f128 {
+    const epsilon = 0.000001;
+
+    try expect(math.isPositiveZero(__expm1_f128(0.0)));
+    try expect(math.approxEqAbs(f128, __expm1_f128(0.0), 0.0, epsilon));
+    try expect(math.approxEqAbs(f128, __expm1_f128(0.2), 0.221403, epsilon));
+    try expect(math.approxEqAbs(f128, __expm1_f128(0.8923), 1.440737, epsilon));
+    try expect(math.approxEqAbs(f128, __expm1_f128(1.5), 3.481689, epsilon));
 }
 
 test "expm1_32.special" {
