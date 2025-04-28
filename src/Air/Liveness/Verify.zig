@@ -141,6 +141,7 @@ fn verifyBody(self: *Verify, body: []const Air.Inst.Index) Error!void {
             .tan,
             .exp,
             .exp2,
+            .expm1,
             .log,
             .log2,
             .log10,

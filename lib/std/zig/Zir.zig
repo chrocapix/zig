@@ -877,6 +877,8 @@ pub const Inst = struct {
         exp,
         /// Implement builtin `@exp2`. Uses `un_node`.
         exp2,
+        /// Implement builtin `@expm1`. Uses `un_node`.
+        expm1,
         /// Implement builtin `@log`. Uses `un_node`.
         log,
         /// Implement builtin `@log2`. Uses `un_node`.
@@ -1230,6 +1232,7 @@ pub const Inst = struct {
                 .tan,
                 .exp,
                 .exp2,
+                .expm1,
                 .log,
                 .log2,
                 .log10,
@@ -1515,6 +1518,7 @@ pub const Inst = struct {
                 .tan,
                 .exp,
                 .exp2,
+                .expm1,
                 .log,
                 .log2,
                 .log10,
@@ -1780,6 +1784,7 @@ pub const Inst = struct {
                 .tan = .un_node,
                 .exp = .un_node,
                 .exp2 = .un_node,
+                .expm1 = .un_node,
                 .log = .un_node,
                 .log2 = .un_node,
                 .log10 = .un_node,
@@ -4286,6 +4291,7 @@ fn findTrackableInner(
         .tan,
         .exp,
         .exp2,
+        .expm1,
         .log,
         .log2,
         .log10,

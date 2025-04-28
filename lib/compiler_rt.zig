@@ -218,6 +218,7 @@ comptime {
     _ = @import("compiler_rt/cos.zig");
     _ = @import("compiler_rt/exp.zig");
     _ = @import("compiler_rt/exp2.zig");
+    _ = @import("compiler_rt/expm1.zig");
     _ = @import("compiler_rt/fabs.zig");
     _ = @import("compiler_rt/floor.zig");
     _ = @import("compiler_rt/fma.zig");

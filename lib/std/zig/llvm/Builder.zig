@@ -2648,6 +2648,7 @@ pub const Intrinsic = enum {
     exp,
     exp10,
     exp2,
+    expm1,
     ldexp,
     frexp,
     log,
@@ -3036,6 +3037,14 @@ pub const Intrinsic = enum {
             .attrs = &.{ .nocallback, .nofree, .nosync, .nounwind, .speculatable, .willreturn, .{ .memory = Attribute.Memory.all(.none) } },
         },
         .exp10 = .{
+            .ret_len = 1,
+            .params = &.{
+                .{ .kind = .overloaded },
+                .{ .kind = .{ .matches = 0 } },
+            },
+            .attrs = &.{ .nocallback, .nofree, .nosync, .nounwind, .speculatable, .willreturn, .{ .memory = Attribute.Memory.all(.none) } },
+        },
+        .expm1 = .{
             .ret_len = 1,
             .params = &.{
                 .{ .kind = .overloaded },

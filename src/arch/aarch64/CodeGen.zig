@@ -694,6 +694,7 @@ fn genBody(self: *Self, body: []const Air.Inst.Index) InnerError!void {
             .tan,
             .exp,
             .exp2,
+            .expm1,
             .log,
             .log2,
             .log10,

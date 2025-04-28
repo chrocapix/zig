@@ -5635,6 +5635,16 @@ fn cmpxchgWeakButNotAtomic(comptime T: type, ptr: *T, expected_value: T, new_val
       Supports {#link|Floats#} and {#link|Vectors#} of floats.
       </p>
       {#header_close#}
+      {#header_open|@exp10#}
+      <pre>{#syntax#}@exp10(value: anytype) @TypeOf(value){#endsyntax#}</pre>
+      <p>
+      Base-10 exponential function on a floating point number. Uses a dedicated hardware instruction
+      when available.
+      </p>
+      <p>
+      Supports {#link|Floats#} and {#link|Vectors#} of floats.
+      </p>
+      {#header_close#}
       {#header_open|@log#}
       <pre>{#syntax#}@log(value: anytype) @TypeOf(value){#endsyntax#}</pre>
       <p>

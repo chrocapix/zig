@@ -2403,6 +2403,7 @@ const NavGen = struct {
         tan,
         exp,
         exp2,
+        expm1,
         log,
         log2,
         log10,
@@ -2451,6 +2452,7 @@ const NavGen = struct {
                     .tan => 62, // tan
                     .exp => 19, // exp
                     .exp2 => 20, // exp2
+                    .expm1 => 22, // expm1
                     .log => 37, // log
                     .log2 => 38, // log2
                     .log10 => 39, // log10
@@ -2474,6 +2476,7 @@ const NavGen = struct {
                     .tan,
                     .exp,
                     .exp2,
+                    .expm1,
                     .log,
                     .log2,
                     .log10,
@@ -3221,6 +3224,7 @@ const NavGen = struct {
             .tan => try self.airUnOpSimple(inst, .tan),
             .exp => try self.airUnOpSimple(inst, .exp),
             .exp2 => try self.airUnOpSimple(inst, .exp2),
+            .expm1 => try self.airUnOpSimple(inst, .expm1),
             .log => try self.airUnOpSimple(inst, .log),
             .log2 => try self.airUnOpSimple(inst, .log2),
             .log10 => try self.airUnOpSimple(inst, .log10),
