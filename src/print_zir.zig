@@ -250,6 +250,7 @@ const Writer = struct {
             .tan,
             .exp,
             .exp2,
+            .expm1,
             .log,
             .log2,
             .log10,
