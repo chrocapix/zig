@@ -192,6 +192,7 @@ fn checkBody(air: Air, body: []const Air.Inst.Index, zcu: *Zcu) bool {
             .tan,
             .exp,
             .exp2,
+            .expm1,
             .log,
             .log2,
             .log10,

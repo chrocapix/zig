@@ -357,6 +357,9 @@ pub const Inst = struct {
         /// Base 2 exponential of a floating point number.
         /// Uses the `un_op` field.
         exp2,
+        /// Base e exponential minus 1 of a floating point number.
+        /// Uses the `un_op` field.
+        expm1,
         /// Natural (base e) logarithm of a floating point number.
         /// Uses the `un_op` field.
         log,
@@ -1514,6 +1517,7 @@ pub fn typeOfIndex(air: *const Air, inst: Air.Inst.Index, ip: *const InternPool)
         .tan,
         .exp,
         .exp2,
+        .expm1,
         .log,
         .log2,
         .log10,
@@ -1905,6 +1909,7 @@ pub fn mustLower(air: Air, inst: Air.Inst.Index, ip: *const InternPool) bool {
         .tan,
         .exp,
         .exp2,
+        .expm1,
         .log,
         .log2,
         .log10,

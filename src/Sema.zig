@@ -1319,6 +1319,7 @@ fn analyzeBodyInner(
             .tan   => try sema.zirUnaryMath(block, inst, .tan, Value.tan),
             .exp   => try sema.zirUnaryMath(block, inst, .exp, Value.exp),
             .exp2  => try sema.zirUnaryMath(block, inst, .exp2, Value.exp2),
+            .expm1 => try sema.zirUnaryMath(block, inst, .expm1, Value.expm1),
             .log   => try sema.zirUnaryMath(block, inst, .log, Value.log),
             .log2  => try sema.zirUnaryMath(block, inst, .log2, Value.log2),
             .log10 => try sema.zirUnaryMath(block, inst, .log10, Value.log10),

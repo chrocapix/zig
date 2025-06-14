@@ -2507,6 +2507,41 @@ pub fn exp2Scalar(val: Value, float_type: Type, pt: Zcu.PerThread) Allocator.Err
     } }));
 }
 
+pub fn expm1(val: Value, float_type: Type, arena: Allocator, pt: Zcu.PerThread) !Value {
+    const zcu = pt.zcu;
+    if (float_type.zigTypeTag(zcu) == .vector) {
+        const result_data = try arena.alloc(InternPool.Index, float_type.vectorLen(zcu));
+        const scalar_ty = float_type.scalarType(zcu);
+        for (result_data, 0..) |*scalar, i| {
+            const elem_val = try val.elemValue(pt, i);
+            scalar.* = (try expm1Scalar(elem_val, scalar_ty, pt)).toIntern();
+        }
+        return Value.fromInterned(try pt.intern(.{ .aggregate = .{
+            .ty = float_type.toIntern(),
+            .storage = .{ .elems = result_data },
+        } }));
+    }
+    return expm1Scalar(val, float_type, pt);
+}
+
+pub fn expm1Scalar(val: Value, float_type: Type, pt: Zcu.PerThread) Allocator.Error!Value {
+    const zcu = pt.zcu;
+    const target = zcu.getTarget();
+    _ = val;
+    const storage: InternPool.Key.Float.Storage = switch (float_type.floatBits(target)) {
+        16 => .{ .f16 = 0 }, // @expm1(val.toFloat(f16, zcu)) },
+        32 => .{ .f32 = 0 }, // @expm1(val.toFloat(f32, zcu)) },
+        64 => .{ .f64 = 0 }, // @expm1(val.toFloat(f64, zcu)) },
+        80 => .{ .f80 = 0 }, // @expm1(val.toFloat(f80, zcu)) },
+        128 => .{ .f128 = 0 }, // @expm1(val.toFloat(f128, zcu)) },
+        else => unreachable,
+    };
+    return Value.fromInterned(try pt.intern(.{ .float = .{
+        .ty = float_type.toIntern(),
+        .storage = storage,
+    } }));
+}
+
 pub fn log(val: Value, float_type: Type, arena: Allocator, pt: Zcu.PerThread) !Value {
     const zcu = pt.zcu;
     if (float_type.zigTypeTag(zcu) == .vector) {

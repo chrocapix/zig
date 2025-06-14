@@ -937,6 +937,7 @@ fn builtinCall(astrl: *AstRlAnnotate, block: ?*Block, ri: ResultInfo, node: Ast.
         .tan,
         .exp,
         .exp2,
+        .expm1,
         .log,
         .log2,
         .log10,

@@ -99,6 +99,7 @@ pub const Tag = enum {
     tan,
     exp,
     exp2,
+    expm1,
     log,
     log2,
     log10,
@@ -858,6 +859,13 @@ pub const list = list: {
             "@exp2",
             .{
                 .tag = .exp2,
+                .param_count = 1,
+            },
+        },
+        .{
+            "@expm1",
+            .{
+                .tag = .expm1,
                 .param_count = 1,
             },
         },
