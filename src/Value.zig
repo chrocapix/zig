@@ -2528,10 +2528,10 @@ pub fn expm1Scalar(val: Value, float_type: Type, pt: Zcu.PerThread) Allocator.Er
     const zcu = pt.zcu;
     const target = zcu.getTarget();
     const storage: InternPool.Key.Float.Storage = switch (float_type.floatBits(target)) {
-        16 => .{ .f16 =   @expm1(val.toFloat(f16, zcu)) },
-        32 => .{ .f32 =   @expm1(val.toFloat(f32, zcu)) },
-        64 => .{ .f64 =   @expm1(val.toFloat(f64, zcu)) },
-        80 => .{ .f80 =   @expm1(val.toFloat(f80, zcu)) },
+        16 => .{ .f16 = @expm1(val.toFloat(f16, zcu)) },
+        32 => .{ .f32 = @expm1(val.toFloat(f32, zcu)) },
+        64 => .{ .f64 = @expm1(val.toFloat(f64, zcu)) },
+        80 => .{ .f80 = @expm1(val.toFloat(f80, zcu)) },
         128 => .{ .f128 = @expm1(val.toFloat(f128, zcu)) },
         else => unreachable,
     };

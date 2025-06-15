@@ -221,7 +221,6 @@ pub const asin = @import("math/asin.zig").asin;
 pub const atan = @import("math/atan.zig").atan;
 pub const atan2 = @import("math/atan2.zig").atan2;
 pub const hypot = @import("math/hypot.zig").hypot;
-pub const expm1 = @import("math/expm1.zig").expm1;
 pub const ilogb = @import("math/ilogb.zig").ilogb;
 pub const log = @import("math/log.zig").log;
 pub const log2 = @import("math/log2.zig").log2;
@@ -338,6 +337,19 @@ pub inline fn exp(value: anytype) @TypeOf(value) {
 pub inline fn exp2(value: anytype) @TypeOf(value) {
     return @exp2(value);
 }
+/// Returns e raised to the power of x, minus 1 (e^x - 1). This is more
+/// accurate than exp(e, x) - 1 when x is near 0.
+///
+/// This the same as calling the builtin @expm1
+///
+/// Special Cases:
+///  - expm1(+inf) = +inf
+///  - expm1(-inf) = -1
+///  - expm1(nan)  = nan
+pub fn expm1(x: anytype) @TypeOf(x) {
+    return @expm1(x);
+}
+
 
 pub const complex = @import("math/complex.zig");
 pub const Complex = complex.Complex;
@@ -382,7 +394,6 @@ test {
     _ = atan;
     _ = atan2;
     _ = hypot;
-    _ = expm1;
     _ = ilogb;
     _ = log;
     _ = log2;
