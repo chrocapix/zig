@@ -1399,9 +1399,9 @@ fn analyzeBodyInner(
                     .compile_log        => try sema.zirCompileLog(        block, extended),
                     .min_multi          => try sema.zirMinMaxMulti(       block, extended, .min),
                     .max_multi          => try sema.zirMinMaxMulti(       block, extended, .max),
-                    .expm1              => try sema.zirUnaryMath(         block, inst, .expm1, Value.expm1),
-                    .exp10              => try sema.zirUnaryMath(         block, inst, .exp10, Value.exp10),
-                    .log1p              => try sema.zirUnaryMath(         block, inst, .log1p, Value.log1p),
+                    .expm1              => try sema.zirExtendedUnaryMath( block, extended, .expm1, Value.expm1),
+                    .exp10              => try sema.zirExtendedUnaryMath( block, extended, .exp10, Value.exp10),
+                    .log1p              => try sema.zirExtendedUnaryMath( block, extended, .log1p, Value.log1p),
                     .add_with_overflow  => try sema.zirOverflowArithmetic(block, extended, extended.opcode),
                     .sub_with_overflow  => try sema.zirOverflowArithmetic(block, extended, extended.opcode),
                     .mul_with_overflow  => try sema.zirOverflowArithmetic(block, extended, extended.opcode),
@@ -20663,6 +20663,41 @@ fn zirUnaryMath(
     const inst_data = sema.code.instructions.items(.data)[@intFromEnum(inst)].un_node;
     const operand = try sema.resolveInst(inst_data.operand);
     const operand_src = block.builtinCallArgSrc(inst_data.src_node, 0);
+    const operand_ty = sema.typeOf(operand);
+    const scalar_ty = operand_ty.scalarType(zcu);
+
+    switch (scalar_ty.zigTypeTag(zcu)) {
+        .comptime_float, .float => {},
+        else => return sema.fail(
+            block,
+            operand_src,
+            "expected vector of floats or float type, found '{}'",
+            .{operand_ty.fmt(pt)},
+        ),
+    }
+
+    return (try sema.maybeConstantUnaryMath(operand, operand_ty, eval)) orelse {
+        try sema.requireRuntimeBlock(block, operand_src, null);
+        return block.addUnOp(air_tag, operand);
+    };
+}
+
+fn zirExtendedUnaryMath(
+    sema: *Sema,
+    block: *Block,
+    extended: Zir.Inst.Extended.InstData,
+    air_tag: Air.Inst.Tag,
+    comptime eval: fn (Value, Type, Allocator, Zcu.PerThread) Allocator.Error!Value,
+) CompileError!Air.Inst.Ref {
+    const tracy = trace(@src());
+    defer tracy.end();
+
+    const extra = sema.code.extraData(Zir.Inst.UnNode, extended.operand).data;
+
+    const pt = sema.pt;
+    const zcu = pt.zcu;
+    const operand = try sema.resolveInst(extra.operand);
+    const operand_src = block.builtinCallArgSrc(extra.node, 0);
     const operand_ty = sema.typeOf(operand);
     const scalar_ty = operand_ty.scalarType(zcu);
 
