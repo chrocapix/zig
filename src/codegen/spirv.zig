@@ -2403,9 +2403,12 @@ const NavGen = struct {
         tan,
         exp,
         exp2,
+        exp10,
+        expm1,
         log,
         log2,
         log10,
+        log1p,
     };
 
     fn buildUnary(self: *NavGen, op: UnaryOp, operand: Temporary) !Temporary {
@@ -2451,9 +2454,12 @@ const NavGen = struct {
                     .tan => 62, // tan
                     .exp => 19, // exp
                     .exp2 => 20, // exp2
+                    .exp10 => 21, // exp10
+                    .expm1 => 22, // expm1
                     .log => 37, // log
                     .log2 => 38, // log2
                     .log10 => 39, // log10
+                    .log1p => 40, // log1p
                     else => unreachable,
                 },
                 // Note: We'll need to check these for floating point accuracy
@@ -2474,9 +2480,12 @@ const NavGen = struct {
                     .tan,
                     .exp,
                     .exp2,
+                    .exp10,
+                    .expm1,
                     .log,
                     .log2,
                     .log10,
+                    .log1p,
                     => return self.todo("implement unary operation '{s}' for {s} os", .{ @tagName(op), @tagName(target.os.tag) }),
                     else => unreachable,
                 },
@@ -3221,9 +3230,12 @@ const NavGen = struct {
             .tan => try self.airUnOpSimple(inst, .tan),
             .exp => try self.airUnOpSimple(inst, .exp),
             .exp2 => try self.airUnOpSimple(inst, .exp2),
+            .exp10 => try self.airUnOpSimple(inst, .exp10),
+            .expm1 => try self.airUnOpSimple(inst, .expm1),
             .log => try self.airUnOpSimple(inst, .log),
             .log2 => try self.airUnOpSimple(inst, .log2),
             .log10 => try self.airUnOpSimple(inst, .log10),
+            .log1p => try self.airUnOpSimple(inst, .log1p),
             .abs => try self.airAbs(inst),
             .floor => try self.airUnOpSimple(inst, .floor),
             .ceil => try self.airUnOpSimple(inst, .ceil),
