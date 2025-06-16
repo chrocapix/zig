@@ -2648,10 +2648,12 @@ pub const Intrinsic = enum {
     exp,
     exp10,
     exp2,
+    expm1,
     ldexp,
     frexp,
     log,
     log10,
+    log1p,
     log2,
     fma,
     fabs,
@@ -3043,6 +3045,14 @@ pub const Intrinsic = enum {
             },
             .attrs = &.{ .nocallback, .nofree, .nosync, .nounwind, .speculatable, .willreturn, .{ .memory = Attribute.Memory.all(.none) } },
         },
+        .expm1 = .{
+            .ret_len = 1,
+            .params = &.{
+                .{ .kind = .overloaded },
+                .{ .kind = .{ .matches = 0 } },
+            },
+            .attrs = &.{ .nocallback, .nofree, .nosync, .nounwind, .speculatable, .willreturn, .{ .memory = Attribute.Memory.all(.none) } },
+        },
         .ldexp = .{
             .ret_len = 1,
             .params = &.{
@@ -3070,6 +3080,14 @@ pub const Intrinsic = enum {
             .attrs = &.{ .nocallback, .nofree, .nosync, .nounwind, .speculatable, .willreturn, .{ .memory = Attribute.Memory.all(.none) } },
         },
         .log10 = .{
+            .ret_len = 1,
+            .params = &.{
+                .{ .kind = .overloaded },
+                .{ .kind = .{ .matches = 0 } },
+            },
+            .attrs = &.{ .nocallback, .nofree, .nosync, .nounwind, .speculatable, .willreturn, .{ .memory = Attribute.Memory.all(.none) } },
+        },
+        .log1p = .{
             .ret_len = 1,
             .params = &.{
                 .{ .kind = .overloaded },

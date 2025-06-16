@@ -1895,6 +1895,12 @@ pub const Inst = struct {
     /// Rarer instructions are here; ones that do not fit in the 8-bit `Tag` enum.
     /// `noreturn` instructions may not go here; they must be part of the main `Tag` enum.
     pub const Extended = enum(u16) {
+        /// builtin @expm1
+        expm1,
+        /// builtin @exp10
+        exp10,
+        /// builtin @log1p
+        log1p,
         /// A struct type definition. Contains references to ZIR instructions for
         /// the field types, defaults, and alignments.
         /// `operand` is payload index to `StructDecl`.
@@ -4355,6 +4361,9 @@ fn findTrackableInner(
                 .value_placeholder => unreachable,
 
                 // Once again, we start with the boring tags.
+                .expm1,
+                .exp10,
+                .log1p,
                 .this,
                 .ret_addr,
                 .builtin_src,
