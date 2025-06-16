@@ -231,6 +231,7 @@ set(ZIG_STAGE2_SOURCES
     lib/compiler_rt/emutls.zig
     lib/compiler_rt/exp.zig
     lib/compiler_rt/exp2.zig
+    lib/compiler_rt/expm1.zig
     lib/compiler_rt/extenddftf2.zig
     lib/compiler_rt/extenddfxf2.zig
     lib/compiler_rt/extendf.zig
