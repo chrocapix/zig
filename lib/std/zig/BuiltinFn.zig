@@ -99,9 +99,12 @@ pub const Tag = enum {
     tan,
     exp,
     exp2,
+    exp10,
+    expm1,
     log,
     log2,
     log10,
+    log1p,
     abs,
     floor,
     ceil,
@@ -862,6 +865,20 @@ pub const list = list: {
             },
         },
         .{
+            "@exp10",
+            .{
+                .tag = .exp10,
+                .param_count = 1,
+            },
+        },
+        .{
+            "@expm1",
+            .{
+                .tag = .expm1,
+                .param_count = 1,
+            },
+        },
+        .{
             "@log",
             .{
                 .tag = .log,
@@ -879,6 +896,13 @@ pub const list = list: {
             "@log10",
             .{
                 .tag = .log10,
+                .param_count = 1,
+            },
+        },
+        .{
+            "@log1p",
+            .{
+                .tag = .log1p,
                 .param_count = 1,
             },
         },

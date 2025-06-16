@@ -2913,6 +2913,9 @@ fn addEnsureResult(gz: *GenZir, maybe_unused_result: Zir.Inst.Ref, statement: As
             => break :b false,
 
             .extended => switch (gz.astgen.instructions.items(.data)[@intFromEnum(inst)].extended.opcode) {
+                .exp10,
+                .expm1,
+                .log1p,
                 .breakpoint,
                 .disable_instrumentation,
                 .disable_intrinsics,
@@ -9503,6 +9506,10 @@ fn builtinCall(
         .Frame                 => return simpleUnOp(gz, scope, ri, node, .{ .rl = .none },                                     params[0], .frame_type),
         .frame_size            => return simpleUnOp(gz, scope, ri, node, .{ .rl = .none },                                     params[0], .frame_size),
 
+        .exp10                 => return extendedUnOp(gz, scope, ri, node, .{ .rl = .none },                                     params[0], .exp10),
+        .expm1                 => return extendedUnOp(gz, scope, ri, node, .{ .rl = .none },                                     params[0], .expm1),
+        .log1p                 => return extendedUnOp(gz, scope, ri, node, .{ .rl = .none },                                     params[0], .log1p),
+
         .int_from_float => return typeCast(gz, scope, ri, node, params[0], .int_from_float, builtin_name),
         .float_from_int => return typeCast(gz, scope, ri, node, params[0], .float_from_int, builtin_name),
         .ptr_from_int   => return typeCast(gz, scope, ri, node, params[0], .ptr_from_int, builtin_name),
@@ -9965,6 +9972,27 @@ fn simpleUnOp(
     const result = try gz.addUnNode(tag, operand, node);
     return rvalue(gz, ri, result, node);
 }
+
+fn extendedUnOp(
+    gz: *GenZir,
+    scope: *Scope,
+    ri: ResultInfo,
+    node: Ast.Node.Index,
+    operand_ri: ResultInfo,
+    operand_node: Ast.Node.Index,
+    tag: Zir.Inst.Extended,
+) InnerError!Zir.Inst.Ref {
+    std.debug.print("-> extendedUnOp...\n", .{});
+    const operand = try expr(gz, scope, operand_ri, operand_node);
+    const result = try gz.addExtendedPayload(tag, Zir.Inst.UnNode{
+        .node = gz.nodeIndexToRelative(node),
+        .operand = operand,
+    });
+    const res = rvalue(gz, ri, result, node);
+    std.debug.print("   extendedUnOp OK\n", .{});
+    return res;
+}
+
 
 fn negation(
     gz: *GenZir,
