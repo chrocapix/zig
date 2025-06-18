@@ -27,12 +27,12 @@ fn exp10(x: f64) callconv(.c) f64 {
     return 0;
 }
 
-fn exp10q(x: f80) callconv(.c) f80 {
+fn __exp10x(x: f80) callconv(.c) f80 {
     _ = x;
     return 0;
 }
 
-fn __exp10x(x: f128) callconv(.c) f128 {
+fn exp10q(x: f128) callconv(.c) f128 {
     _ = x;
     return 0;
 }
