@@ -2528,16 +2528,16 @@ pub fn exp10Scalar(val: Value, float_type: Type, pt: Zcu.PerThread) Allocator.Er
     const zcu = pt.zcu;
     const target = zcu.getTarget();
     const storage: InternPool.Key.Float.Storage = switch (float_type.floatBits(target)) {
-        16 => .{ .f16 = (val.toFloat(f16, zcu)) },
-        32 => .{ .f32 = (val.toFloat(f32, zcu)) },
-        64 => .{ .f64 = (val.toFloat(f64, zcu)) },
-        80 => .{ .f80 = (val.toFloat(f80, zcu)) },
-        128 => .{ .f128 = (val.toFloat(f128, zcu)) },
-        // 16 => .{ .f16 = @exp10(val.toFloat(f16, zcu)) },
-        // 32 => .{ .f32 = @exp10(val.toFloat(f32, zcu)) },
-        // 64 => .{ .f64 = @exp10(val.toFloat(f64, zcu)) },
-        // 80 => .{ .f80 = @exp10(val.toFloat(f80, zcu)) },
-        // 128 => .{ .f128 = @exp10(val.toFloat(f128, zcu)) },
+        // 16 => .{ .f16 = (val.toFloat(f16, zcu)) },
+        // 32 => .{ .f32 = (val.toFloat(f32, zcu)) },
+        // 64 => .{ .f64 = (val.toFloat(f64, zcu)) },
+        // 80 => .{ .f80 = (val.toFloat(f80, zcu)) },
+        // 128 => .{ .f128 = (val.toFloat(f128, zcu)) },
+        16 => .{ .f16 = @exp10(val.toFloat(f16, zcu)) },
+        32 => .{ .f32 = @exp10(val.toFloat(f32, zcu)) },
+        64 => .{ .f64 = @exp10(val.toFloat(f64, zcu)) },
+        80 => .{ .f80 = @exp10(val.toFloat(f80, zcu)) },
+        128 => .{ .f128 = @exp10(val.toFloat(f128, zcu)) },
         else => unreachable,
     };
     return Value.fromInterned(try pt.intern(.{ .float = .{
@@ -2567,16 +2567,16 @@ pub fn expm1Scalar(val: Value, float_type: Type, pt: Zcu.PerThread) Allocator.Er
     const zcu = pt.zcu;
     const target = zcu.getTarget();
     const storage: InternPool.Key.Float.Storage = switch (float_type.floatBits(target)) {
-        16 => .{ .f16 = (val.toFloat(f16, zcu)) },
-        32 => .{ .f32 = (val.toFloat(f32, zcu)) },
-        64 => .{ .f64 = (val.toFloat(f64, zcu)) },
-        80 => .{ .f80 = (val.toFloat(f80, zcu)) },
-        128 => .{ .f128 = (val.toFloat(f128, zcu)) },
-        // 16 => .{ .f16 = @expm1(val.toFloat(f16, zcu)) },
-        // 32 => .{ .f32 = @expm1(val.toFloat(f32, zcu)) },
-        // 64 => .{ .f64 = @expm1(val.toFloat(f64, zcu)) },
-        // 80 => .{ .f80 = @expm1(val.toFloat(f80, zcu)) },
-        // 128 => .{ .f128 = @expm1(val.toFloat(f128, zcu)) },
+        // 16 => .{ .f16 = (val.toFloat(f16, zcu)) },
+        // 32 => .{ .f32 = (val.toFloat(f32, zcu)) },
+        // 64 => .{ .f64 = (val.toFloat(f64, zcu)) },
+        // 80 => .{ .f80 = (val.toFloat(f80, zcu)) },
+        // 128 => .{ .f128 = (val.toFloat(f128, zcu)) },
+        16 => .{ .f16 = @expm1(val.toFloat(f16, zcu)) },
+        32 => .{ .f32 = @expm1(val.toFloat(f32, zcu)) },
+        64 => .{ .f64 = @expm1(val.toFloat(f64, zcu)) },
+        80 => .{ .f80 = @expm1(val.toFloat(f80, zcu)) },
+        128 => .{ .f128 = @expm1(val.toFloat(f128, zcu)) },
         else => unreachable,
     };
     return Value.fromInterned(try pt.intern(.{ .float = .{
@@ -2708,16 +2708,16 @@ pub fn log1pScalar(val: Value, float_type: Type, pt: Zcu.PerThread) Allocator.Er
     const zcu = pt.zcu;
     const target = zcu.getTarget();
     const storage: InternPool.Key.Float.Storage = switch (float_type.floatBits(target)) {
-        16 => .{ .f16 = (val.toFloat(f16, zcu)) },
-        32 => .{ .f32 = (val.toFloat(f32, zcu)) },
-        64 => .{ .f64 = (val.toFloat(f64, zcu)) },
-        80 => .{ .f80 = (val.toFloat(f80, zcu)) },
-        128 => .{ .f128 = (val.toFloat(f128, zcu)) },
-        // 16 => .{ .f16 = @log1p(val.toFloat(f16, zcu)) },
-        // 32 => .{ .f32 = @log1p(val.toFloat(f32, zcu)) },
-        // 64 => .{ .f64 = @log1p(val.toFloat(f64, zcu)) },
-        // 80 => .{ .f80 = @log1p(val.toFloat(f80, zcu)) },
-        // 128 => .{ .f128 = @log1p(val.toFloat(f128, zcu)) },
+        // 16 => .{ .f16 = (val.toFloat(f16, zcu)) },
+        // 32 => .{ .f32 = (val.toFloat(f32, zcu)) },
+        // 64 => .{ .f64 = (val.toFloat(f64, zcu)) },
+        // 80 => .{ .f80 = (val.toFloat(f80, zcu)) },
+        // 128 => .{ .f128 = (val.toFloat(f128, zcu)) },
+        16 => .{ .f16 = @log1p(val.toFloat(f16, zcu)) },
+        32 => .{ .f32 = @log1p(val.toFloat(f32, zcu)) },
+        64 => .{ .f64 = @log1p(val.toFloat(f64, zcu)) },
+        80 => .{ .f80 = @log1p(val.toFloat(f80, zcu)) },
+        128 => .{ .f128 = @log1p(val.toFloat(f128, zcu)) },
         else => unreachable,
     };
     return Value.fromInterned(try pt.intern(.{ .float = .{

@@ -20,6 +20,11 @@ comptime {
     }
     @export(&log1pq, .{ .name = "log1pq", .linkage = common.linkage, .visibility = common.visibility });
     @export(&log1pl, .{ .name = "log1pl", .linkage = common.linkage, .visibility = common.visibility });
+
+    // TODO: remove these, they should not be needed.
+    @export(&__log1ph, .{ .name = "llvm.log1p.f16", .linkage = common.linkage, .visibility = common.visibility });
+    @export(&log1pf, .{ .name = "llvm.log1p.f32", .linkage = common.linkage, .visibility = common.visibility });
+    @export(&log1p, .{ .name = "llvm.log1p.f64", .linkage = common.linkage, .visibility = common.visibility });
 }
 
 fn __log1ph(x: f16) callconv(.c) f16 {
