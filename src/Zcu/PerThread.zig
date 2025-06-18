@@ -1825,6 +1825,8 @@ fn createFileRootStruct(
     const ip = &zcu.intern_pool;
     const file = zcu.fileByIndex(file_index);
     const extended = file.zir.?.instructions.items(.data)[@intFromEnum(Zir.Inst.Index.main_struct_inst)].extended;
+    if (extended.opcode != .struct_decl)
+        std.debug.print("createFileRootStruct: extended.opcode == {s}\n", .{@tagName(extended.opcode)});
     assert(extended.opcode == .struct_decl);
     const small: Zir.Inst.StructDecl.Small = @bitCast(extended.small);
     assert(!small.has_captures_len);

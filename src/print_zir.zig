@@ -533,9 +533,6 @@ const Writer = struct {
             .c_va_start,
             .in_comptime,
             .value_placeholder,
-            .expm1,
-            .exp10,
-            .log1p,
             => try self.writeExtNode(stream, extended),
 
             .builtin_src => {
@@ -554,6 +551,11 @@ const Writer = struct {
             .max_multi => try self.writeNodeMultiOp(stream, extended),
 
             .select => try self.writeSelect(stream, extended),
+
+            .expm1,
+            .exp10,
+            .log1p,
+            => try self.writeExtUnNode(stream, extended),
 
             .add_with_overflow,
             .sub_with_overflow,
@@ -651,6 +653,13 @@ const Writer = struct {
         try self.writeInstRef(stream, inst_data.operand);
         try stream.writeAll(") ");
         try self.writeSrcNode(stream, inst_data.src_node);
+    }
+
+    fn writeExtUnNode(self: *Writer, stream: anytype, extended: Zir.Inst.Extended.InstData) !void {
+        const extra = self.code.extraData(Zir.Inst.UnNode, extended.operand).data;
+        try self.writeInstRef(stream, extra.operand);
+        try stream.writeAll(") ");
+        try self.writeSrcNode(stream, extra.node);
     }
 
     fn writeUnTok(

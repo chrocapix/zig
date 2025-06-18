@@ -2913,9 +2913,6 @@ fn addEnsureResult(gz: *GenZir, maybe_unused_result: Zir.Inst.Ref, statement: As
             => break :b false,
 
             .extended => switch (gz.astgen.instructions.items(.data)[@intFromEnum(inst)].extended.opcode) {
-                .exp10,
-                .expm1,
-                .log1p,
                 .breakpoint,
                 .disable_instrumentation,
                 .disable_intrinsics,
@@ -9989,7 +9986,6 @@ fn extendedUnOp(
     });
     return rvalue(gz, ri, result, node);
 }
-
 
 fn negation(
     gz: *GenZir,
