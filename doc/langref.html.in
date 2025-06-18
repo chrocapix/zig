@@ -5625,10 +5625,30 @@ fn cmpxchgWeakButNotAtomic(comptime T: type, ptr: *T, expected_value: T, new_val
       Supports {#link|Floats#} and {#link|Vectors#} of floats.
       </p>
       {#header_close#}
+      {#header_open|@exp10#}
+      <pre>{#syntax#}@exp10(value: anytype) @TypeOf(value){#endsyntax#}</pre>
+      <p>
+      Base-10 exponential function on a floating point number. Uses a dedicated hardware instruction
+      when available.
+      </p>
+      <p>
+      Supports {#link|Floats#} and {#link|Vectors#} of floats.
+      </p>
+      {#header_close#}
       {#header_open|@exp2#}
       <pre>{#syntax#}@exp2(value: anytype) @TypeOf(value){#endsyntax#}</pre>
       <p>
       Base-2 exponential function on a floating point number. Uses a dedicated hardware instruction
+      when available.
+      </p>
+      <p>
+      Supports {#link|Floats#} and {#link|Vectors#} of floats.
+      </p>
+      {#header_close#}
+      {#header_open|@expm1#}
+      <pre>{#syntax#}@expm1(value: anytype) @TypeOf(value){#endsyntax#}</pre>
+      <p>
+      Base-e exponential function on a floating point number, minus 1. Uses a dedicated hardware instruction
       when available.
       </p>
       <p>
@@ -5659,6 +5679,16 @@ fn cmpxchgWeakButNotAtomic(comptime T: type, ptr: *T, expected_value: T, new_val
       <pre>{#syntax#}@log10(value: anytype) @TypeOf(value){#endsyntax#}</pre>
       <p>
       Returns the logarithm to the base 10 of a floating point number. Uses a dedicated hardware instruction
+      when available.
+      </p>
+      <p>
+      Supports {#link|Floats#} and {#link|Vectors#} of floats.
+      </p>
+      {#header_close#}
+      {#header_open|@log1p#}
+      <pre>{#syntax#}@log1p(value: anytype) @TypeOf(value){#endsyntax#}</pre>
+      <p>
+      Returns the natural logarithm of 1 plus a floating point number. Uses a dedicated hardware instruction
       when available.
       </p>
       <p>
