@@ -2966,13 +2966,14 @@ fn zirStructDecl(
     };
     errdefer wip_ty.cancel(ip, pt.tid);
 
-    wip_ty.setName(ip, try sema.createTypeName(
+    const type_name = try sema.createTypeName(
         block,
         small.name_strategy,
         "struct",
         inst,
         wip_ty.index,
-    ));
+    );
+    wip_ty.setName(ip, type_name.name, type_name.nav);
 
     const new_namespace_index: InternPool.NamespaceIndex = try pt.createNamespace(.{
         .parent = block.namespace.toOptional(),
@@ -2994,7 +2995,8 @@ fn zirStructDecl(
         if (zcu.comp.config.use_llvm) break :codegen_type;
         if (block.ownerModule().strip) break :codegen_type;
         // This job depends on any resolve_type_fully jobs queued up before it.
-        try zcu.comp.queueJob(.{ .codegen_type = wip_ty.index });
+        zcu.comp.link_prog_node.increaseEstimatedTotalItems(1);
+        try zcu.comp.queueJob(.{ .link_type = wip_ty.index });
     }
     try sema.declareDependency(.{ .interned = wip_ty.index });
     try sema.addTypeReferenceEntry(src, wip_ty.index);
@@ -3010,7 +3012,10 @@ pub fn createTypeName(
     inst: ?Zir.Inst.Index,
     /// This is used purely to give the type a unique name in the `anon` case.
     type_index: InternPool.Index,
-) !InternPool.NullTerminatedString {
+) !struct {
+    name: InternPool.NullTerminatedString,
+    nav: InternPool.Nav.Index.Optional,
+} {
     const pt = sema.pt;
     const zcu = pt.zcu;
     const gpa = zcu.gpa;
@@ -3018,7 +3023,10 @@ pub fn createTypeName(
 
     switch (name_strategy) {
         .anon => {}, // handled after switch
-        .parent => return block.type_name_ctx,
+        .parent => return .{
+            .name = block.type_name_ctx,
+            .nav = sema.owner.unwrap().nav_val.toOptional(),
+        },
         .func => func_strat: {
             const fn_info = sema.code.getFnInfo(ip.funcZirBodyInst(sema.func_index).resolve(ip) orelse return error.AnalysisFail);
             const zir_tags = sema.code.instructions.items(.tag);
@@ -3060,7 +3068,10 @@ pub fn createTypeName(
             };
 
             try writer.writeByte(')');
-            return ip.getOrPutString(gpa, pt.tid, buf.items, .no_embedded_nulls);
+            return .{
+                .name = try ip.getOrPutString(gpa, pt.tid, buf.items, .no_embedded_nulls),
+                .nav = .none,
+            };
         },
         .dbg_var => {
             // TODO: this logic is questionable. We ideally should be traversing the `Block` rather than relying on the order of AstGen instructions.
@@ -3069,9 +3080,12 @@ pub fn createTypeName(
             const zir_data = sema.code.instructions.items(.data);
             for (@intFromEnum(inst.?)..zir_tags.len) |i| switch (zir_tags[i]) {
                 .dbg_var_ptr, .dbg_var_val => if (zir_data[i].str_op.operand == ref) {
-                    return ip.getOrPutStringFmt(gpa, pt.tid, "{}.{s}", .{
-                        block.type_name_ctx.fmt(ip), zir_data[i].str_op.getStr(sema.code),
-                    }, .no_embedded_nulls);
+                    return .{
+                        .name = try ip.getOrPutStringFmt(gpa, pt.tid, "{}.{s}", .{
+                            block.type_name_ctx.fmt(ip), zir_data[i].str_op.getStr(sema.code),
+                        }, .no_embedded_nulls),
+                        .nav = .none,
+                    };
                 },
                 else => {},
             };
@@ -3089,9 +3103,12 @@ pub fn createTypeName(
     // types appropriately. However, `@typeName` becomes a problem then. If we remove
     // that builtin from the language, we can consider this.
 
-    return ip.getOrPutStringFmt(gpa, pt.tid, "{}__{s}_{d}", .{
-        block.type_name_ctx.fmt(ip), anon_prefix, @intFromEnum(type_index),
-    }, .no_embedded_nulls);
+    return .{
+        .name = try ip.getOrPutStringFmt(gpa, pt.tid, "{}__{s}_{d}", .{
+            block.type_name_ctx.fmt(ip), anon_prefix, @intFromEnum(type_index),
+        }, .no_embedded_nulls),
+        .nav = .none,
+    };
 }
 
 fn zirEnumDecl(
@@ -3212,7 +3229,7 @@ fn zirEnumDecl(
         inst,
         wip_ty.index,
     );
-    wip_ty.setName(ip, type_name);
+    wip_ty.setName(ip, type_name.name, type_name.nav);
 
     const new_namespace_index: InternPool.NamespaceIndex = try pt.createNamespace(.{
         .parent = block.namespace.toOptional(),
@@ -3239,7 +3256,7 @@ fn zirEnumDecl(
         inst,
         tracked_inst,
         new_namespace_index,
-        type_name,
+        type_name.name,
         small,
         body,
         tag_type_ref,
@@ -3253,7 +3270,8 @@ fn zirEnumDecl(
         if (zcu.comp.config.use_llvm) break :codegen_type;
         if (block.ownerModule().strip) break :codegen_type;
         // This job depends on any resolve_type_fully jobs queued up before it.
-        try zcu.comp.queueJob(.{ .codegen_type = wip_ty.index });
+        zcu.comp.link_prog_node.increaseEstimatedTotalItems(1);
+        try zcu.comp.queueJob(.{ .link_type = wip_ty.index });
     }
     return Air.internedToRef(wip_ty.index);
 }
@@ -3343,13 +3361,14 @@ fn zirUnionDecl(
     };
     errdefer wip_ty.cancel(ip, pt.tid);
 
-    wip_ty.setName(ip, try sema.createTypeName(
+    const type_name = try sema.createTypeName(
         block,
         small.name_strategy,
         "union",
         inst,
         wip_ty.index,
-    ));
+    );
+    wip_ty.setName(ip, type_name.name, type_name.nav);
 
     const new_namespace_index: InternPool.NamespaceIndex = try pt.createNamespace(.{
         .parent = block.namespace.toOptional(),
@@ -3371,7 +3390,8 @@ fn zirUnionDecl(
         if (zcu.comp.config.use_llvm) break :codegen_type;
         if (block.ownerModule().strip) break :codegen_type;
         // This job depends on any resolve_type_fully jobs queued up before it.
-        try zcu.comp.queueJob(.{ .codegen_type = wip_ty.index });
+        zcu.comp.link_prog_node.increaseEstimatedTotalItems(1);
+        try zcu.comp.queueJob(.{ .link_type = wip_ty.index });
     }
     try sema.declareDependency(.{ .interned = wip_ty.index });
     try sema.addTypeReferenceEntry(src, wip_ty.index);
@@ -3435,13 +3455,14 @@ fn zirOpaqueDecl(
     };
     errdefer wip_ty.cancel(ip, pt.tid);
 
-    wip_ty.setName(ip, try sema.createTypeName(
+    const type_name = try sema.createTypeName(
         block,
         small.name_strategy,
         "opaque",
         inst,
         wip_ty.index,
-    ));
+    );
+    wip_ty.setName(ip, type_name.name, type_name.nav);
 
     const new_namespace_index: InternPool.NamespaceIndex = try pt.createNamespace(.{
         .parent = block.namespace.toOptional(),
@@ -3458,7 +3479,8 @@ fn zirOpaqueDecl(
         if (zcu.comp.config.use_llvm) break :codegen_type;
         if (block.ownerModule().strip) break :codegen_type;
         // This job depends on any resolve_type_fully jobs queued up before it.
-        try zcu.comp.queueJob(.{ .codegen_type = wip_ty.index });
+        zcu.comp.link_prog_node.increaseEstimatedTotalItems(1);
+        try zcu.comp.queueJob(.{ .link_type = wip_ty.index });
     }
     try sema.addTypeReferenceEntry(src, wip_ty.index);
     if (zcu.comp.debugIncremental()) try zcu.incremental_debug_state.newType(zcu, wip_ty.index);
@@ -8915,9 +8937,7 @@ fn zirEnumFromInt(sema: *Sema, block: *Block, inst: Zir.Inst.Index) CompileError
 
     try sema.requireRuntimeBlock(block, src, operand_src);
     if (block.wantSafety()) {
-        if (zcu.backendSupportsFeature(.panic_fn)) {
-            _ = try sema.preparePanicId(src, .invalid_enum_value);
-        }
+        try sema.preparePanicId(src, .invalid_enum_value);
         return block.addTyOp(.intcast_safe, dest_ty, operand);
     }
     return block.addTyOp(.intcast, dest_ty, operand);
@@ -10321,9 +10341,7 @@ fn intCast(
 
     try sema.requireRuntimeBlock(block, src, operand_src);
     if (block.wantSafety()) {
-        if (zcu.backendSupportsFeature(.panic_fn)) {
-            _ = try sema.preparePanicId(src, .integer_out_of_bounds);
-        }
+        try sema.preparePanicId(src, .integer_out_of_bounds);
         return block.addTyOp(.intcast_safe, dest_ty, operand);
     }
     return block.addTyOp(.intcast, dest_ty, operand);
@@ -14415,9 +14433,9 @@ fn zirBitwise(
     const casted_lhs = try sema.coerce(block, resolved_type, lhs, lhs_src);
     const casted_rhs = try sema.coerce(block, resolved_type, rhs, rhs_src);
 
-    const is_int = scalar_tag == .int or scalar_tag == .comptime_int;
+    const is_int_or_bool = scalar_tag == .int or scalar_tag == .comptime_int or scalar_tag == .bool;
 
-    if (!is_int) {
+    if (!is_int_or_bool) {
         return sema.fail(block, src, "invalid operands to binary bitwise expression: '{s}' and '{s}'", .{ @tagName(lhs_ty.zigTypeTag(zcu)), @tagName(rhs_ty.zigTypeTag(zcu)) });
     }
 
@@ -14446,47 +14464,54 @@ fn zirBitwise(
 }
 
 fn zirBitNot(sema: *Sema, block: *Block, inst: Zir.Inst.Index) CompileError!Air.Inst.Ref {
-    const tracy = trace(@src());
-    defer tracy.end();
-
     const pt = sema.pt;
     const zcu = pt.zcu;
     const inst_data = sema.code.instructions.items(.data)[@intFromEnum(inst)].un_node;
-    const src = block.nodeOffset(inst_data.src_node);
     const operand_src = block.src(.{ .node_offset_un_op = inst_data.src_node });
-
+    const src = block.nodeOffset(inst_data.src_node);
     const operand = try sema.resolveInst(inst_data.operand);
-    const operand_type = sema.typeOf(operand);
-    const scalar_type = operand_type.scalarType(zcu);
+    const operand_ty = sema.typeOf(operand);
+    const scalar_ty = operand_ty.scalarType(zcu);
+    const scalar_tag = scalar_ty.zigTypeTag(zcu);
 
-    if (scalar_type.zigTypeTag(zcu) != .int) {
-        return sema.fail(block, src, "unable to perform binary not operation on type '{}'", .{
-            operand_type.fmt(pt),
-        });
-    }
+    if (scalar_tag != .int and scalar_tag != .bool)
+        return sema.fail(block, operand_src, "bitwise not operation on type '{}'", .{operand_ty.fmt(pt)});
 
+    return analyzeBitNot(sema, block, operand, src);
+}
+
+fn analyzeBitNot(
+    sema: *Sema,
+    block: *Block,
+    operand: Air.Inst.Ref,
+    src: LazySrcLoc,
+) CompileError!Air.Inst.Ref {
+    const pt = sema.pt;
+    const zcu = pt.zcu;
+    const operand_ty = sema.typeOf(operand);
+    const scalar_ty = operand_ty.scalarType(zcu);
     if (try sema.resolveValue(operand)) |val| {
         if (val.isUndef(zcu)) {
-            return pt.undefRef(operand_type);
-        } else if (operand_type.zigTypeTag(zcu) == .vector) {
-            const vec_len = try sema.usizeCast(block, operand_src, operand_type.vectorLen(zcu));
+            return pt.undefRef(operand_ty);
+        } else if (operand_ty.zigTypeTag(zcu) == .vector) {
+            const vec_len = try sema.usizeCast(block, src, operand_ty.vectorLen(zcu));
             const elems = try sema.arena.alloc(InternPool.Index, vec_len);
             for (elems, 0..) |*elem, i| {
                 const elem_val = try val.elemValue(pt, i);
-                elem.* = (try elem_val.bitwiseNot(scalar_type, sema.arena, pt)).toIntern();
+                elem.* = (try elem_val.bitwiseNot(scalar_ty, sema.arena, pt)).toIntern();
             }
             return Air.internedToRef((try pt.intern(.{ .aggregate = .{
-                .ty = operand_type.toIntern(),
+                .ty = operand_ty.toIntern(),
                 .storage = .{ .elems = elems },
             } })));
         } else {
-            const result_val = try val.bitwiseNot(operand_type, sema.arena, pt);
+            const result_val = try val.bitwiseNot(operand_ty, sema.arena, pt);
             return Air.internedToRef(result_val.toIntern());
         }
     }
 
     try sema.requireRuntimeBlock(block, src, null);
-    return block.addTyOp(.not, operand_type, operand);
+    return block.addTyOp(.not, operand_ty, operand);
 }
 
 fn analyzeTupleCat(
@@ -16369,9 +16394,7 @@ fn analyzeArithmetic(
     }
 
     if (block.wantSafety() and want_safety and scalar_tag == .int) {
-        if (air_tag != air_tag_safe and zcu.backendSupportsFeature(.panic_fn)) {
-            _ = try sema.preparePanicId(src, .integer_overflow);
-        }
+        if (air_tag != air_tag_safe) try sema.preparePanicId(src, .integer_overflow);
         return block.addBinOp(air_tag_safe, casted_lhs, casted_rhs);
     }
     return block.addBinOp(air_tag, casted_lhs, casted_rhs);
@@ -18340,16 +18363,21 @@ fn zirTypeofPeer(
 }
 
 fn zirBoolNot(sema: *Sema, block: *Block, inst: Zir.Inst.Index) CompileError!Air.Inst.Ref {
-    const tracy = trace(@src());
-    defer tracy.end();
-
     const pt = sema.pt;
     const zcu = pt.zcu;
     const inst_data = sema.code.instructions.items(.data)[@intFromEnum(inst)].un_node;
     const src = block.nodeOffset(inst_data.src_node);
     const operand_src = block.src(.{ .node_offset_un_op = inst_data.src_node });
     const uncasted_operand = try sema.resolveInst(inst_data.operand);
-
+    const uncasted_ty = sema.typeOf(uncasted_operand);
+    if (uncasted_ty.isVector(zcu)) {
+        if (uncasted_ty.scalarType(zcu).zigTypeTag(zcu) != .bool) {
+            return sema.fail(block, operand_src, "boolean not operation on type '{}'", .{
+                uncasted_ty.fmt(pt),
+            });
+        }
+        return analyzeBitNot(sema, block, uncasted_operand, src);
+    }
     const operand = try sema.coerce(block, .bool, uncasted_operand, operand_src);
     if (try sema.resolveValue(operand)) |val| {
         return if (val.isUndef(zcu)) .undef_bool else if (val.toBool()) .bool_false else .bool_true;
@@ -20065,7 +20093,8 @@ fn structInitAnon(
     }, false)) {
         .wip => |wip| ty: {
             errdefer wip.cancel(ip, pt.tid);
-            wip.setName(ip, try sema.createTypeName(block, .anon, "struct", inst, wip.index));
+            const type_name = try sema.createTypeName(block, .anon, "struct", inst, wip.index);
+            wip.setName(ip, type_name.name, type_name.nav);
 
             const struct_type = ip.loadStructType(wip.index);
 
@@ -20089,7 +20118,8 @@ fn structInitAnon(
             codegen_type: {
                 if (zcu.comp.config.use_llvm) break :codegen_type;
                 if (block.ownerModule().strip) break :codegen_type;
-                try zcu.comp.queueJob(.{ .codegen_type = wip.index });
+                zcu.comp.link_prog_node.increaseEstimatedTotalItems(1);
+                try zcu.comp.queueJob(.{ .link_type = wip.index });
             }
             if (zcu.comp.debugIncremental()) try zcu.incremental_debug_state.newType(zcu, wip.index);
             break :ty wip.finish(ip, new_namespace_index);
@@ -21160,13 +21190,14 @@ fn zirReify(
             };
             errdefer wip_ty.cancel(ip, pt.tid);
 
-            wip_ty.setName(ip, try sema.createTypeName(
+            const type_name = try sema.createTypeName(
                 block,
                 name_strategy,
                 "opaque",
                 inst,
                 wip_ty.index,
-            ));
+            );
+            wip_ty.setName(ip, type_name.name, type_name.nav);
 
             const new_namespace_index = try pt.createNamespace(.{
                 .parent = block.namespace.toOptional(),
@@ -21365,13 +21396,14 @@ fn reifyEnum(
         return sema.fail(block, src, "Type.Enum.tag_type must be an integer type", .{});
     }
 
-    wip_ty.setName(ip, try sema.createTypeName(
+    const type_name = try sema.createTypeName(
         block,
         name_strategy,
         "enum",
         inst,
         wip_ty.index,
-    ));
+    );
+    wip_ty.setName(ip, type_name.name, type_name.nav);
 
     const new_namespace_index = try pt.createNamespace(.{
         .parent = block.namespace.toOptional(),
@@ -21434,7 +21466,8 @@ fn reifyEnum(
         if (zcu.comp.config.use_llvm) break :codegen_type;
         if (block.ownerModule().strip) break :codegen_type;
         // This job depends on any resolve_type_fully jobs queued up before it.
-        try zcu.comp.queueJob(.{ .codegen_type = wip_ty.index });
+        zcu.comp.link_prog_node.increaseEstimatedTotalItems(1);
+        try zcu.comp.queueJob(.{ .link_type = wip_ty.index });
     }
     return Air.internedToRef(wip_ty.index);
 }
@@ -21536,7 +21569,7 @@ fn reifyUnion(
         inst,
         wip_ty.index,
     );
-    wip_ty.setName(ip, type_name);
+    wip_ty.setName(ip, type_name.name, type_name.nav);
 
     const field_types = try sema.arena.alloc(InternPool.Index, fields_len);
     const field_aligns = if (any_aligns) try sema.arena.alloc(InternPool.Alignment, fields_len) else undefined;
@@ -21629,7 +21662,7 @@ fn reifyUnion(
             }
         }
 
-        const enum_tag_ty = try sema.generateUnionTagTypeSimple(block, field_names.keys(), wip_ty.index, type_name);
+        const enum_tag_ty = try sema.generateUnionTagTypeSimple(block, field_names.keys(), wip_ty.index, type_name.name);
         break :tag_ty .{ enum_tag_ty, false };
     };
     errdefer if (!has_explicit_tag) ip.remove(pt.tid, enum_tag_ty); // remove generated tag type on error
@@ -21688,7 +21721,8 @@ fn reifyUnion(
         if (zcu.comp.config.use_llvm) break :codegen_type;
         if (block.ownerModule().strip) break :codegen_type;
         // This job depends on any resolve_type_fully jobs queued up before it.
-        try zcu.comp.queueJob(.{ .codegen_type = wip_ty.index });
+        zcu.comp.link_prog_node.increaseEstimatedTotalItems(1);
+        try zcu.comp.queueJob(.{ .link_type = wip_ty.index });
     }
     try sema.declareDependency(.{ .interned = wip_ty.index });
     try sema.addTypeReferenceEntry(src, wip_ty.index);
@@ -21891,13 +21925,14 @@ fn reifyStruct(
     };
     errdefer wip_ty.cancel(ip, pt.tid);
 
-    wip_ty.setName(ip, try sema.createTypeName(
+    const type_name = try sema.createTypeName(
         block,
         name_strategy,
         "struct",
         inst,
         wip_ty.index,
-    ));
+    );
+    wip_ty.setName(ip, type_name.name, type_name.nav);
 
     const struct_type = ip.loadStructType(wip_ty.index);
 
@@ -22042,7 +22077,8 @@ fn reifyStruct(
         if (zcu.comp.config.use_llvm) break :codegen_type;
         if (block.ownerModule().strip) break :codegen_type;
         // This job depends on any resolve_type_fully jobs queued up before it.
-        try zcu.comp.queueJob(.{ .codegen_type = wip_ty.index });
+        zcu.comp.link_prog_node.increaseEstimatedTotalItems(1);
+        try zcu.comp.queueJob(.{ .link_type = wip_ty.index });
     }
     try sema.declareDependency(.{ .interned = wip_ty.index });
     try sema.addTypeReferenceEntry(src, wip_ty.index);
@@ -22174,44 +22210,32 @@ fn zirIntFromFloat(sema: *Sema, block: *Block, inst: Zir.Inst.Index) CompileErro
 
     try sema.requireRuntimeBlock(block, src, operand_src);
     if (dest_scalar_ty.intInfo(zcu).bits == 0) {
-        if (!is_vector) {
-            if (block.wantSafety()) {
-                const ok = try block.addBinOp(if (block.float_mode == .optimized) .cmp_eq_optimized else .cmp_eq, operand, Air.internedToRef((try pt.floatValue(operand_ty, 0.0)).toIntern()));
-                try sema.addSafetyCheck(block, src, ok, .integer_part_out_of_bounds);
-            }
-            return Air.internedToRef((try pt.intValue(dest_ty, 0)).toIntern());
-        }
         if (block.wantSafety()) {
-            const len = dest_ty.vectorLen(zcu);
-            for (0..len) |i| {
-                const idx_ref = try pt.intRef(.usize, i);
-                const elem_ref = try block.addBinOp(.array_elem_val, operand, idx_ref);
-                const ok = try block.addBinOp(if (block.float_mode == .optimized) .cmp_eq_optimized else .cmp_eq, elem_ref, Air.internedToRef((try pt.floatValue(operand_scalar_ty, 0.0)).toIntern()));
-                try sema.addSafetyCheck(block, src, ok, .integer_part_out_of_bounds);
-            }
+            // Emit an explicit safety check. We can do this one like `abs(x) < 1`.
+            const abs_ref = try block.addTyOp(.abs, operand_ty, operand);
+            const max_abs_ref = if (is_vector) try block.addReduce(abs_ref, .Max) else abs_ref;
+            const one_ref = Air.internedToRef((try pt.floatValue(operand_scalar_ty, 1.0)).toIntern());
+            const ok_ref = try block.addBinOp(.cmp_lt, max_abs_ref, one_ref);
+            try sema.addSafetyCheck(block, src, ok_ref, .integer_part_out_of_bounds);
         }
+        const scalar_val = try pt.intValue(dest_scalar_ty, 0);
+        if (!is_vector) return Air.internedToRef(scalar_val.toIntern());
         return Air.internedToRef(try pt.intern(.{ .aggregate = .{
             .ty = dest_ty.toIntern(),
-            .storage = .{ .repeated_elem = (try pt.intValue(dest_scalar_ty, 0)).toIntern() },
+            .storage = .{ .repeated_elem = scalar_val.toIntern() },
         } }));
     }
-    const result = try block.addTyOp(if (block.float_mode == .optimized) .int_from_float_optimized else .int_from_float, dest_ty, operand);
     if (block.wantSafety()) {
-        const back = try block.addTyOp(.float_from_int, operand_ty, result);
-        const diff = try block.addBinOp(if (block.float_mode == .optimized) .sub_optimized else .sub, operand, back);
-        const ok = if (is_vector) ok: {
-            const ok_pos = try block.addCmpVector(diff, Air.internedToRef((try sema.splat(operand_ty, try pt.floatValue(operand_scalar_ty, 1.0))).toIntern()), .lt);
-            const ok_neg = try block.addCmpVector(diff, Air.internedToRef((try sema.splat(operand_ty, try pt.floatValue(operand_scalar_ty, -1.0))).toIntern()), .gt);
-            const ok = try block.addBinOp(.bit_and, ok_pos, ok_neg);
-            break :ok try block.addReduce(ok, .And);
-        } else ok: {
-            const ok_pos = try block.addBinOp(if (block.float_mode == .optimized) .cmp_lt_optimized else .cmp_lt, diff, Air.internedToRef((try pt.floatValue(operand_ty, 1.0)).toIntern()));
-            const ok_neg = try block.addBinOp(if (block.float_mode == .optimized) .cmp_gt_optimized else .cmp_gt, diff, Air.internedToRef((try pt.floatValue(operand_ty, -1.0)).toIntern()));
-            break :ok try block.addBinOp(.bool_and, ok_pos, ok_neg);
-        };
-        try sema.addSafetyCheck(block, src, ok, .integer_part_out_of_bounds);
+        try sema.preparePanicId(src, .integer_part_out_of_bounds);
+        return block.addTyOp(switch (block.float_mode) {
+            .optimized => .int_from_float_optimized_safe,
+            .strict => .int_from_float_safe,
+        }, dest_ty, operand);
     }
-    return result;
+    return block.addTyOp(switch (block.float_mode) {
+        .optimized => .int_from_float_optimized,
+        .strict => .int_from_float,
+    }, dest_ty, operand);
 }
 
 fn zirFloatFromInt(sema: *Sema, block: *Block, inst: Zir.Inst.Index) CompileError!Air.Inst.Ref {
@@ -26867,7 +26891,15 @@ fn explainWhyTypeIsNotPacked(
 /// Backends depend on panic decls being available when lowering safety-checked
 /// instructions. This function ensures the panic function will be available to
 /// be called during that time.
-fn preparePanicId(sema: *Sema, src: LazySrcLoc, panic_id: Zcu.SimplePanicId) !InternPool.Index {
+fn preparePanicId(sema: *Sema, src: LazySrcLoc, panic_id: Zcu.SimplePanicId) !void {
+    // If the backend doesn't support `.panic_fn`, it doesn't want us to lower the panic handlers.
+    // The backend will transform panics into traps instead.
+    if (sema.pt.zcu.backendSupportsFeature(.panic_fn)) {
+        _ = try sema.getPanicIdFunc(src, panic_id);
+    }
+}
+
+fn getPanicIdFunc(sema: *Sema, src: LazySrcLoc, panic_id: Zcu.SimplePanicId) !InternPool.Index {
     const zcu = sema.pt.zcu;
     try sema.ensureMemoizedStateResolved(src, .panic);
     const panic_func = zcu.builtin_decl_values.get(panic_id.toBuiltin());
@@ -27116,7 +27148,7 @@ fn safetyPanic(sema: *Sema, block: *Block, src: LazySrcLoc, panic_id: Zcu.Simple
     if (!sema.pt.zcu.backendSupportsFeature(.panic_fn)) {
         _ = try block.addNoOp(.trap);
     } else {
-        const panic_fn = try sema.preparePanicId(src, panic_id);
+        const panic_fn = try sema.getPanicIdFunc(src, panic_id);
         try sema.callBuiltin(block, src, Air.internedToRef(panic_fn), .auto, &.{}, .@"safety check");
     }
 }
@@ -32839,24 +32871,21 @@ fn cmpNumeric(
             }
         }
         if (lhs_is_float) {
-            if (lhs_val.floatHasFraction(zcu)) {
-                switch (op) {
+            const float = lhs_val.toFloat(f128, zcu);
+            var big_int: std.math.big.int.Mutable = .{
+                .limbs = try sema.arena.alloc(std.math.big.Limb, std.math.big.int.calcLimbLen(float)),
+                .len = undefined,
+                .positive = undefined,
+            };
+            switch (big_int.setFloat(float, .away)) {
+                .inexact => switch (op) {
                     .eq => return .bool_false,
                     .neq => return .bool_true,
                     else => {},
-                }
+                },
+                .exact => {},
             }
-
-            var bigint = try float128IntPartToBigInt(sema.gpa, lhs_val.toFloat(f128, zcu));
-            defer bigint.deinit();
-            if (lhs_val.floatHasFraction(zcu)) {
-                if (lhs_is_signed) {
-                    try bigint.addScalar(&bigint, -1);
-                } else {
-                    try bigint.addScalar(&bigint, 1);
-                }
-            }
-            lhs_bits = bigint.toConst().bitCountTwosComp();
+            lhs_bits = big_int.toConst().bitCountTwosComp();
         } else {
             lhs_bits = lhs_val.intBitCountTwosComp(zcu);
         }
@@ -32886,24 +32915,21 @@ fn cmpNumeric(
             }
         }
         if (rhs_is_float) {
-            if (rhs_val.floatHasFraction(zcu)) {
-                switch (op) {
+            const float = rhs_val.toFloat(f128, zcu);
+            var big_int: std.math.big.int.Mutable = .{
+                .limbs = try sema.arena.alloc(std.math.big.Limb, std.math.big.int.calcLimbLen(float)),
+                .len = undefined,
+                .positive = undefined,
+            };
+            switch (big_int.setFloat(float, .away)) {
+                .inexact => switch (op) {
                     .eq => return .bool_false,
                     .neq => return .bool_true,
                     else => {},
-                }
+                },
+                .exact => {},
             }
-
-            var bigint = try float128IntPartToBigInt(sema.gpa, rhs_val.toFloat(f128, zcu));
-            defer bigint.deinit();
-            if (rhs_val.floatHasFraction(zcu)) {
-                if (rhs_is_signed) {
-                    try bigint.addScalar(&bigint, -1);
-                } else {
-                    try bigint.addScalar(&bigint, 1);
-                }
-            }
-            rhs_bits = bigint.toConst().bitCountTwosComp();
+            rhs_bits = big_int.toConst().bitCountTwosComp();
         } else {
             rhs_bits = rhs_val.intBitCountTwosComp(zcu);
         }
@@ -35070,7 +35096,7 @@ pub fn resolveUnionAlignment(
     union_type.setAlignment(ip, max_align);
 }
 
-/// This logic must be kept in sync with `Zcu.getUnionLayout`.
+/// This logic must be kept in sync with `Type.getUnionLayout`.
 pub fn resolveUnionLayout(sema: *Sema, ty: Type) SemaError!void {
     const pt = sema.pt;
     const ip = &pt.zcu.intern_pool;
@@ -35104,24 +35130,32 @@ pub fn resolveUnionLayout(sema: *Sema, ty: Type) SemaError!void {
     var max_align: Alignment = .@"1";
     for (0..union_type.field_types.len) |field_index| {
         const field_ty: Type = .fromInterned(union_type.field_types.get(ip)[field_index]);
+        if (field_ty.isNoReturn(pt.zcu)) continue;
 
-        if (try field_ty.comptimeOnlySema(pt) or field_ty.zigTypeTag(pt.zcu) == .noreturn) continue; // TODO: should this affect alignment?
+        // We need to call `hasRuntimeBits` before calling `abiSize` to prevent reachable `unreachable`s,
+        // but `hasRuntimeBits` only resolves field types and so may infinite recurse on a layout wip type,
+        // so we must resolve the layout manually first, instead of waiting for `abiSize` to do it for us.
+        // This is arguably just hacking around bugs in both `abiSize` for not allowing arbitrary types to
+        // be queried, enabling failures to be handled with the emission of a compile error, and also in
+        // `hasRuntimeBits` for ever being able to infinite recurse in the first place.
+        try field_ty.resolveLayout(pt);
 
-        max_size = @max(max_size, field_ty.abiSizeSema(pt) catch |err| switch (err) {
-            error.AnalysisFail => {
-                const msg = sema.err orelse return err;
-                try sema.addFieldErrNote(ty, field_index, msg, "while checking this field", .{});
-                return err;
-            },
-            else => return err,
-        });
+        if (try field_ty.hasRuntimeBitsSema(pt)) {
+            max_size = @max(max_size, field_ty.abiSizeSema(pt) catch |err| switch (err) {
+                error.AnalysisFail => {
+                    const msg = sema.err orelse return err;
+                    try sema.addFieldErrNote(ty, field_index, msg, "while checking this field", .{});
+                    return err;
+                },
+                else => return err,
+            });
+        }
 
         const explicit_align = union_type.fieldAlign(ip, field_index);
         const field_align = if (explicit_align != .none)
             explicit_align
         else
             try field_ty.abiAlignmentSema(pt);
-
         max_align = max_align.max(field_align);
     }
 
@@ -36943,31 +36977,6 @@ fn intFromFloat(
     return sema.intFromFloatScalar(block, src, val, int_ty, mode);
 }
 
-// float is expected to be finite and non-NaN
-fn float128IntPartToBigInt(
-    arena: Allocator,
-    float: f128,
-) !std.math.big.int.Managed {
-    const is_negative = std.math.signbit(float);
-    const floored = @floor(@abs(float));
-
-    var rational = try std.math.big.Rational.init(arena);
-    defer rational.q.deinit();
-    rational.setFloat(f128, floored) catch |err| switch (err) {
-        error.NonFiniteFloat => unreachable,
-        error.OutOfMemory => return error.OutOfMemory,
-    };
-
-    // The float is reduced in rational.setFloat, so we assert that denominator is equal to one
-    const big_one = std.math.big.int.Const{ .limbs = &.{1}, .positive = true };
-    assert(rational.q.toConst().eqlAbs(big_one));
-
-    if (is_negative) {
-        rational.negate();
-    }
-    return rational.p;
-}
-
 fn intFromFloatScalar(
     sema: *Sema,
     block: *Block,
@@ -36981,13 +36990,6 @@ fn intFromFloatScalar(
 
     if (val.isUndef(zcu)) return sema.failWithUseOfUndef(block, src);
 
-    if (mode == .exact and val.floatHasFraction(zcu)) return sema.fail(
-        block,
-        src,
-        "fractional component prevents float value '{}' from coercion to type '{}'",
-        .{ val.fmtValueSema(pt, sema), int_ty.fmt(pt) },
-    );
-
     const float = val.toFloat(f128, zcu);
     if (std.math.isNan(float)) {
         return sema.fail(block, src, "float value NaN cannot be stored in integer type '{}'", .{
@@ -37000,12 +37002,28 @@ fn intFromFloatScalar(
         });
     }
 
-    var big_int = try float128IntPartToBigInt(sema.arena, float);
-    defer big_int.deinit();
-
+    var big_int: std.math.big.int.Mutable = .{
+        .limbs = try sema.arena.alloc(std.math.big.Limb, std.math.big.int.calcLimbLen(float)),
+        .len = undefined,
+        .positive = undefined,
+    };
+    switch (big_int.setFloat(float, .trunc)) {
+        .inexact => switch (mode) {
+            .exact => return sema.fail(
+                block,
+                src,
+                "fractional component prevents float value '{}' from coercion to type '{}'",
+                .{ val.fmtValueSema(pt, sema), int_ty.fmt(pt) },
+            ),
+            .truncate => {},
+        },
+        .exact => {},
+    }
     const cti_result = try pt.intValue_big(.comptime_int, big_int.toConst());
+    if (int_ty.toIntern() == .comptime_int_type) return cti_result;
 
-    if (!(try sema.intFitsInType(cti_result, int_ty, null))) {
+    const int_info = int_ty.intInfo(zcu);
+    if (!big_int.toConst().fitsInTwosComp(int_info.signedness, int_info.bits)) {
         return sema.fail(block, src, "float value '{}' cannot be stored in integer type '{}'", .{
             val.fmtValueSema(pt, sema), int_ty.fmt(pt),
         });

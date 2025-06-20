@@ -739,7 +739,7 @@ pub fn functionPointerMask(target: std.Target) ?u64 {
 
 pub fn supportsTailCall(target: std.Target, backend: std.builtin.CompilerBackend) bool {
     switch (backend) {
-        .stage1, .stage2_llvm => return @import("codegen/llvm.zig").supportsTailCall(target),
+        .stage2_llvm => return @import("codegen/llvm.zig").supportsTailCall(target),
         .stage2_c => return true,
         else => return false,
     }
@@ -813,8 +813,8 @@ pub fn zigBackend(target: std.Target, use_llvm: bool) std.builtin.CompilerBacken
         .powerpc, .powerpcle, .powerpc64, .powerpc64le => .stage2_powerpc,
         .riscv64 => .stage2_riscv64,
         .sparc64 => .stage2_sparc64,
-        .spirv32 => if (target.os.tag == .opencl) .stage2_spirv64 else .other,
-        .spirv, .spirv64 => .stage2_spirv64,
+        .spirv32 => if (target.os.tag == .opencl) .stage2_spirv else .other,
+        .spirv, .spirv64 => .stage2_spirv,
         .wasm32, .wasm64 => .stage2_wasm,
         .x86 => .stage2_x86,
         .x86_64 => .stage2_x86_64,
@@ -850,7 +850,9 @@ pub inline fn backendSupportsFeature(backend: std.builtin.CompilerBackend, compt
         },
         .separate_thread => switch (backend) {
             .stage2_llvm => false,
-            else => true,
+            .stage2_c, .stage2_wasm, .stage2_x86_64 => true,
+            // TODO: most self-hosted backends should be able to support this without too much work.
+            else => false,
         },
     };
 }

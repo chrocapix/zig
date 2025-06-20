@@ -692,6 +692,10 @@ pub const Inst = struct {
         int_from_float,
         /// Same as `int_from_float` with optimized float mode.
         int_from_float_optimized,
+        /// Same as `int_from_float`, but with a safety check that the operand is in bounds.
+        int_from_float_safe,
+        /// Same as `int_from_float_optimized`, but with a safety check that the operand is in bounds.
+        int_from_float_optimized_safe,
         /// Given an integer operand, return the float with the closest mathematical meaning.
         /// Uses the `ty_op` field.
         float_from_int,
@@ -1162,9 +1166,7 @@ pub const Inst = struct {
         ty: Type,
         arg: struct {
             ty: Ref,
-            /// Index into `extra` of a null-terminated string representing the parameter name.
-            /// This is `.none` if debug info is stripped.
-            name: NullTerminatedString,
+            zir_param_index: u32,
         },
         ty_op: struct {
             ty: Ref,
@@ -1626,6 +1628,8 @@ pub fn typeOfIndex(air: *const Air, inst: Air.Inst.Index, ip: *const InternPool)
         .array_to_slice,
         .int_from_float,
         .int_from_float_optimized,
+        .int_from_float_safe,
+        .int_from_float_optimized_safe,
         .float_from_int,
         .splat,
         .get_union_tag,
@@ -1856,6 +1860,8 @@ pub fn mustLower(air: Air, inst: Air.Inst.Index, ip: *const InternPool) bool {
         .sub_safe,
         .mul_safe,
         .intcast_safe,
+        .int_from_float_safe,
+        .int_from_float_optimized_safe,
         => true,
 
         .add,
