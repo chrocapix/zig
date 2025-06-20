@@ -23,10 +23,10 @@ comptime {
     @export(&expm1q, .{ .name = "expm1q", .linkage = common.linkage, .visibility = common.visibility });
     @export(&expm1l, .{ .name = "expm1l", .linkage = common.linkage, .visibility = common.visibility });
 
-    // TODO: remove these, they should not be needed.
-    @export(&__expm1h, .{ .name = "llvm.expm1.f16", .linkage = common.linkage, .visibility = common.visibility });
-    @export(&expm1f, .{ .name = "llvm.expm1.f32", .linkage = common.linkage, .visibility = common.visibility });
-    @export(&expm1, .{ .name = "llvm.expm1.f64", .linkage = common.linkage, .visibility = common.visibility });
+    // // TODO: remove these, they should not be needed.
+    // @export(&__expm1h, .{ .name = "llvm.expm1.f16", .linkage = common.linkage, .visibility = common.visibility });
+    // @export(&expm1f, .{ .name = "llvm.expm1.f32", .linkage = common.linkage, .visibility = common.visibility });
+    // @export(&expm1, .{ .name = "llvm.expm1.f64", .linkage = common.linkage, .visibility = common.visibility });
 }
 
 pub fn __expm1h(a: f16) callconv(.c) f16 {
