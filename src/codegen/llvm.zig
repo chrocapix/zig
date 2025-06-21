@@ -8839,7 +8839,6 @@ pub const FuncGen = struct {
             else => true,
         };
 
-        // if (op != .tan and intrinsicsAllowed(scalar_ty, target)) switch (op) {
         if (op_allow_intrinsic and intrinsicsAllowed(scalar_ty, target)) switch (op) {
             // Some operations are dedicated LLVM instructions, not available as intrinsics
             .neg => return self.wip.un(.fneg, params[0], ""),
