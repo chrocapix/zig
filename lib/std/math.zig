@@ -222,14 +222,12 @@ pub const asin = @import("math/asin.zig").asin;
 pub const atan = @import("math/atan.zig").atan;
 pub const atan2 = @import("math/atan2.zig").atan2;
 pub const hypot = @import("math/hypot.zig").hypot;
-pub const expm1 = @import("math/expm1.zig").expm1;
 pub const ilogb = @import("math/ilogb.zig").ilogb;
 pub const log = @import("math/log.zig").log;
 pub const log2 = @import("math/log2.zig").log2;
 pub const log10 = @import("math/log10.zig").log10;
 pub const log10_int = @import("math/log10.zig").log10_int;
 pub const log_int = @import("math/log_int.zig").log_int;
-pub const log1p = @import("math/log1p.zig").log1p;
 pub const asinh = @import("math/asinh.zig").asinh;
 pub const acosh = @import("math/acosh.zig").acosh;
 pub const atanh = @import("math/atanh.zig").atanh;
@@ -340,6 +338,33 @@ pub inline fn exp2(value: anytype) @TypeOf(value) {
     return @exp2(value);
 }
 
+/// Base-10 exponential function on a floating point number.
+/// Uses a dedicated hardware instruction when available.
+/// This is the same as calling the builtin @exp10
+pub inline fn exp10(value: anytype) @TypeOf(value) {
+    return @exp10(value);
+}
+
+/// Base-e exponential function on a floating point number, minus 1.
+/// Uses a dedicated hardware instruction when available.
+/// This is the same as calling the builtin @expm1
+pub inline fn expm1(value: anytype) @TypeOf(value) {
+    return @expm1(value);
+}
+///
+/// Returns the natural logarithm of 1 + x with greater accuracy when x is near zero.
+/// This is the same as calling the builtin @log1p
+///
+/// Special Cases:
+///  - log1p(+inf)  = +inf
+///  - log1p(+-0)   = +-0
+///  - log1p(-1)    = -inf
+///  - log1p(x)     = nan if x < -1
+///  - log1p(nan)   = nan
+pub fn log1p(x: anytype) @TypeOf(x) {
+    return @log1p(x);
+}
+
 pub const complex = @import("math/complex.zig");
 pub const Complex = complex.Complex;
 
@@ -383,7 +408,6 @@ test {
     _ = atan;
     _ = atan2;
     _ = hypot;
-    _ = expm1;
     _ = ilogb;
     _ = log;
     _ = log2;
