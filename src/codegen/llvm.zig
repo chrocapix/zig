@@ -8834,7 +8834,13 @@ pub const FuncGen = struct {
         const scalar_ty = ty.scalarType(zcu);
         const llvm_ty = try o.lowerType(ty);
 
-        if (op != .tan and intrinsicsAllowed(scalar_ty, target)) switch (op) {
+        const op_allow_intrinsic = switch (op) {
+            .tan, .expm1, .log1p => false,
+            else => true,
+        };
+
+        // if (op != .tan and intrinsicsAllowed(scalar_ty, target)) switch (op) {
+        if (op_allow_intrinsic and intrinsicsAllowed(scalar_ty, target)) switch (op) {
             // Some operations are dedicated LLVM instructions, not available as intrinsics
             .neg => return self.wip.un(.fneg, params[0], ""),
             .add, .sub, .mul, .div, .fmod => return self.wip.bin(switch (fast) {
@@ -8862,12 +8868,10 @@ pub const FuncGen = struct {
             .exp,
             .exp2,
             .exp10,
-            .expm1,
             .fabs,
             .floor,
             .log,
             .log10,
-            .log1p,
             .log2,
             .round,
             .sin,
@@ -8882,12 +8886,10 @@ pub const FuncGen = struct {
                 .exp => .exp,
                 .exp2 => .exp2,
                 .exp10 => .exp10,
-                .expm1 => .expm1,
                 .fabs => .fabs,
                 .floor => .floor,
                 .log => .log,
                 .log10 => .log10,
-                .log1p => .log1p,
                 .log2 => .log2,
                 .round => .round,
                 .sin => .sin,
@@ -8896,7 +8898,10 @@ pub const FuncGen = struct {
                 .fma => .fma,
                 else => unreachable,
             }, &.{llvm_ty}, &params, ""),
-            .tan => unreachable,
+            .tan,
+            .expm1,
+            .log1p,
+            => unreachable,
         };
 
         const float_bits = scalar_ty.floatBits(target);

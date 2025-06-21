@@ -21,18 +21,18 @@ comptime {
     @export(&log1pq, .{ .name = "log1pq", .linkage = common.linkage, .visibility = common.visibility });
     @export(&log1pl, .{ .name = "log1pl", .linkage = common.linkage, .visibility = common.visibility });
 
-    // // TODO: remove these, they should not be needed.
+    // TODO: remove these, they should not be needed.
     // @export(&__log1ph, .{ .name = "llvm.log1p.f16", .linkage = common.linkage, .visibility = common.visibility });
     // @export(&log1pf, .{ .name = "llvm.log1p.f32", .linkage = common.linkage, .visibility = common.visibility });
     // @export(&log1p, .{ .name = "llvm.log1p.f64", .linkage = common.linkage, .visibility = common.visibility });
 }
 
-fn __log1ph(x: f16) callconv(.c) f16 {
+pub fn __log1ph(x: f16) callconv(.c) f16 {
     // TODO: more efficient implementation
     return @floatCast(log1pf(x));
 }
 
-fn log1pf(x: f32) callconv(.c) f32 {
+pub fn log1pf(x: f32) callconv(.c) f32 {
     const ln2_hi = 6.9313812256e-01;
     const ln2_lo = 9.0580006145e-06;
     const Lg1: f32 = 0xaaaaaa.0p-24;
@@ -108,7 +108,7 @@ fn log1pf(x: f32) callconv(.c) f32 {
     return s * (hfsq + R) + (dk * ln2_lo + c) - hfsq + f + dk * ln2_hi;
 }
 
-fn log1p(x: f64) callconv(.c) f64 {
+pub fn log1p(x: f64) callconv(.c) f64 {
     const ln2_hi: f64 = 6.93147180369123816490e-01;
     const ln2_lo: f64 = 1.90821492927058770002e-10;
     const Lg1: f64 = 6.666666666666735130e-01;
