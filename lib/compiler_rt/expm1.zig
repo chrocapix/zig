@@ -43,7 +43,7 @@ fn expm1f(x_: f32) callconv(.c) f32 {
     var x = x_;
     const ux = @as(u32, @bitCast(x));
     const hx = ux & 0x7FFFFFFF;
-    const sign = hx >> 31;
+    const sign = ux >> 31;
 
     // TODO: Shouldn't need this check explicitly.
     if (math.isNegativeInf(x)) {
@@ -314,6 +314,7 @@ test expm1f {
     try expect(math.approxEqAbs(f32, expm1f(0.2), 0.221403, epsilon));
     try expect(math.approxEqAbs(f32, expm1f(0.8923), 1.440737, epsilon));
     try expect(math.approxEqAbs(f32, expm1f(1.5), 3.481689, epsilon));
+    try expect(math.approxEqAbs(f32, expm1f(-1.036649e0), -0.6453589, epsilon));
 }
 
 test expm1 {
