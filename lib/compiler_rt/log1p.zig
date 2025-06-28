@@ -188,10 +188,7 @@ pub fn __log1px(x: f80) callconv(.c) f80 {
     return @floatCast(log1pq(x));
 }
 
-pub fn log1pq(x: f128) callconv(.c) f128 {
-    // TODO: more correct implementation
-    return log1p(@floatCast(x));
-}
+pub const log1pq = @import("log_f128.zig").log1pq;
 
 pub fn log1pl(x: c_longdouble) callconv(.c) c_longdouble {
     switch (@typeInfo(c_longdouble).float.bits) {
@@ -228,6 +225,18 @@ test log1p {
     try expect(math.approxEqAbs(f64, log1p(123123.234375), 11.720949, epsilon));
 }
 
+test log1pq {
+    const epsilon = 0.000001;
+
+    try expect(math.approxEqAbs(f128, log1pq(0.0), 0.0, epsilon));
+    try expect(math.approxEqAbs(f128, log1pq(0.2), 0.182322, epsilon));
+    try expect(math.approxEqAbs(f128, log1pq(0.8923), 0.637793, epsilon));
+    try expect(math.approxEqAbs(f128, log1pq(1.5), 0.916291, epsilon));
+    try expect(math.approxEqAbs(f128, log1pq(37.45), 3.649359, epsilon));
+    try expect(math.approxEqAbs(f128, log1pq(89.123), 4.501175, epsilon));
+    try expect(math.approxEqAbs(f128, log1pq(123123.234375), 11.720949, epsilon));
+}
+
 test "log1p_32.special" {
     try expect(math.isPositiveInf(log1pf(math.inf(f32))));
     try expect(math.isPositiveZero(log1pf(0.0)));
@@ -244,4 +253,13 @@ test "log1p_64.special" {
     try expect(math.isNegativeInf(log1p(-1.0)));
     try expect(math.isNan(log1p(-2.0)));
     try expect(math.isNan(log1p(math.nan(f64))));
+}
+
+test "log1p_128.special" {
+    try expect(math.isPositiveInf(log1pq(math.inf(f128))));
+    try expect(math.isPositiveZero(log1pq(0.0)));
+    try expect(math.isNegativeZero(log1pq(-0.0)));
+    try expect(math.isNegativeInf(log1pq(-1.0)));
+    try expect(math.isNan(log1pq(-2.0)));
+    try expect(math.isNan(log1pq(math.nan(f128))));
 }

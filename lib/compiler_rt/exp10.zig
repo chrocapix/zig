@@ -76,10 +76,7 @@ fn __exp10x(x: f80) callconv(.c) f80 {
     return @floatCast(exp10q(x));
 }
 
-fn exp10q(x: f128) callconv(.c) f128 {
-    // TODO: more correct implementation
-    return exp10(@floatCast(x));
-}
+pub const exp10q = @import("exp_f128.zig").exp10q;
 
 fn exp10l(x: c_longdouble) callconv(.c) c_longdouble {
     switch (@typeInfo(c_longdouble).float.bits) {
@@ -117,4 +114,16 @@ test exp10 {
     try expectRel(31.6227766, exp10(1.5), eps);
     try expectRel(2.8183828546771552e+37, exp10(37.45), eps);
     try expectRel(0.1, exp10(-1), eps);
+}
+
+test exp10q {
+    const eps = 50 * math.floatEps(f32);
+
+    try expect(exp10q(0) == 1);
+
+    try expectRel(1.584893193, exp10q(0.2), eps);
+    try expectRel(7.81627805, exp10q(0.893), eps);
+    try expectRel(31.6227766, exp10q(1.5), eps);
+    try expectRel(2.8183828546771552e+37, exp10q(37.45), eps);
+    try expectRel(0.1, exp10q(-1), eps);
 }

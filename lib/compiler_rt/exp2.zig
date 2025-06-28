@@ -162,10 +162,7 @@ pub fn __exp2x(x: f80) callconv(.c) f80 {
     return @floatCast(exp2q(x));
 }
 
-pub fn exp2q(x: f128) callconv(.c) f128 {
-    // TODO: more correct implementation
-    return exp2(@floatCast(x));
-}
+pub const exp2q = @import("exp_f128.zig").exp2q;
 
 pub fn exp2l(x: c_longdouble) callconv(.c) c_longdouble {
     switch (@typeInfo(c_longdouble).float.bits) {
@@ -479,6 +476,17 @@ test "exp2_64" {
     try expect(math.approxEqAbs(f64, exp2(-0x1.a05cc754481d1p-2), 0x1.824056efc687cp-1, epsilon));
 }
 
+test "exp2_128" {
+    const epsilon = 0.000001;
+
+    try expect(exp2q(0.0) == 1.0);
+    try expect(math.approxEqAbs(f128, exp2q(0.2), 1.148698, epsilon));
+    try expect(math.approxEqAbs(f128, exp2q(0.8923), 1.856133, epsilon));
+    try expect(math.approxEqAbs(f128, exp2q(1.5), 2.828427, epsilon));
+    try expect(math.approxEqAbs(f128, exp2q(-1), 0.5, epsilon));
+    try expect(math.approxEqAbs(f128, exp2q(-0x1.a05cc754481d1p-2), 0x1.824056efc687cp-1, epsilon));
+}
+
 test "exp2_32.special" {
     try expect(math.isPositiveInf(exp2f(math.inf(f32))));
     try expect(math.isNan(exp2f(math.nan(f32))));
@@ -487,4 +495,9 @@ test "exp2_32.special" {
 test "exp2_64.special" {
     try expect(math.isPositiveInf(exp2(math.inf(f64))));
     try expect(math.isNan(exp2(math.nan(f64))));
+}
+
+test "exp2_128.special" {
+    try expect(math.isPositiveInf(exp2q(math.inf(f128))));
+    try expect(math.isNan(exp2q(math.nan(f128))));
 }

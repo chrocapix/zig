@@ -233,6 +233,7 @@ set(ZIG_STAGE2_SOURCES
     lib/compiler_rt/exp2.zig
     lib/compiler_rt/exp10.zig
     lib/compiler_rt/expm1.zig
+	lib/compiler_rt/exp_f128.zig
     lib/compiler_rt/extenddftf2.zig
     lib/compiler_rt/extenddfxf2.zig
     lib/compiler_rt/extendf.zig
@@ -320,6 +321,7 @@ set(ZIG_STAGE2_SOURCES
     lib/compiler_rt/log10.zig
     lib/compiler_rt/log1p.zig
     lib/compiler_rt/log2.zig
+    lib/compiler_rt/log_f128.zig
     lib/compiler_rt/modti3.zig
     lib/compiler_rt/mulXi3.zig
     lib/compiler_rt/muldf3.zig

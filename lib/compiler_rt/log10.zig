@@ -171,10 +171,7 @@ pub fn __log10x(a: f80) callconv(.c) f80 {
     return @floatCast(log10q(a));
 }
 
-pub fn log10q(a: f128) callconv(.c) f128 {
-    // TODO: more correct implementation
-    return log10(@floatCast(a));
-}
+pub const log10q = @import("log_f128.zig").log10q;
 
 pub fn log10l(x: c_longdouble) callconv(.c) c_longdouble {
     switch (@typeInfo(c_longdouble).float.bits) {
@@ -209,6 +206,17 @@ test "log10_64" {
     try testing.expect(math.approxEqAbs(f64, log10(123123.234375), 5.09034, epsilon));
 }
 
+test "log10_128" {
+    const epsilon = 0.000001;
+
+    try testing.expect(math.approxEqAbs(f128, log10q(0.2), -0.698970, epsilon));
+    try testing.expect(math.approxEqAbs(f128, log10q(0.8923), -0.049489, epsilon));
+    try testing.expect(math.approxEqAbs(f128, log10q(1.5), 0.176091, epsilon));
+    try testing.expect(math.approxEqAbs(f128, log10q(37.45), 1.573452, epsilon));
+    try testing.expect(math.approxEqAbs(f128, log10q(89.123), 1.94999, epsilon));
+    try testing.expect(math.approxEqAbs(f128, log10q(123123.234375), 5.09034, epsilon));
+}
+
 test "log10_32.special" {
     try testing.expect(math.isPositiveInf(log10f(math.inf(f32))));
     try testing.expect(math.isNegativeInf(log10f(0.0)));
@@ -221,4 +229,11 @@ test "log10_64.special" {
     try testing.expect(math.isNegativeInf(log10(0.0)));
     try testing.expect(math.isNan(log10(-1.0)));
     try testing.expect(math.isNan(log10(math.nan(f64))));
+}
+
+test "log10_128.special" {
+    try testing.expect(math.isPositiveInf(log10q(math.inf(f128))));
+    try testing.expect(math.isNegativeInf(log10q(0.0)));
+    try testing.expect(math.isNan(log10q(-1.0)));
+    try testing.expect(math.isNan(log10q(math.nan(f128))));
 }
